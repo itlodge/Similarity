@@ -1,3 +1,6 @@
+require 'rmmseg'
+require 'pathname'
+
 class Document
   attr_reader :content, :id
 
@@ -11,6 +14,15 @@ class Document
       raise ArgumentError, "text cannot be nil or blank"
     end
 
+    @chinese = hash_args[:chinese]
+    if @chinese
+      current_path = Pathname.new(File.dirname(__FILE__)).realpath
+      @stop_set = Set.new
+      File.foreach("#{current_path}/stopwords.txt") do |line|
+        @stop_set.add(line.strip)
+      end
+    end
+
     id = hash_args[:id]
     if id && !id.nil?
       @id = id
@@ -20,9 +32,28 @@ class Document
   end
 
   def terms
-    @terms ||=
-      @content.gsub(/(\d|\s|\W)+/, ' ').
-      split(/\s/).map { |term| term.downcase }
+    if @chinese
+      return chinese_terms
+    else
+      @terms ||=
+        @content.gsub(/(\d|\s|\W)+/, ' ').
+        split(/\s/).map { |term| term.downcase }
+    end
+  end
+
+  def chinese_terms
+    algorithm = RMMSeg::Algorithm.new(content)
+    @terms = []
+    loop do
+      token = algorithm.next_token
+      break if token.nil?
+
+      token.text.force_encoding('utf-8')
+      if not @stop_set.include?(token.text)
+        @terms.push(token.text)
+      end
+    end
+    return @terms
   end
 
   def term_frequencies

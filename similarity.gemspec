@@ -17,6 +17,7 @@ EOT
   s.summary = %q{Document similarity calculations using cosine similarity and TF-IDF weights}
 
   s.add_dependency "rb-gsl", ">=1.16.0"
+  s.add_dependency "rmmseg-cpp"
 
   s.add_development_dependency "rake"
   s.add_development_dependency "faker"

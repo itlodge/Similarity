@@ -20,7 +20,10 @@ class TermDocumentMatrix
       end
     end
 
-    @matrix.each_col { |col| col.div!(col.norm) }
+    if @non_zeros > 0
+      @matrix.each_col { |col| col.div!(col.norm) }
+    end
+    
     @labels = corpus.terms.to_a.map {|e| e[0]}
   end
 
